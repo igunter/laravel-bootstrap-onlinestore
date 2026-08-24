@@ -31,10 +31,14 @@ quick-reference status tracker.
   - Nav partials show "Admin" link only for admins.
   - `UserFactory::admin()` state.
   - Tests: `tests/Feature/Admin/AdminAccessTest.php` (guest→login redirect, customer→403, admin→200).
-- [ ] **Phase 2 — Categories, Brands, Media**
-  - `kalnoy/nestedset` + `spatie/laravel-medialibrary` + `intervention/image` + `intervention/image-driver-gd`.
-  - `Category` (NodeTrait + InteractsWithMedia), `Brand` (InteractsWithMedia) models/migrations.
-  - `resources/views/layouts/admin.blade.php` (new sidebar layout) + admin CRUD for both.
+- [x] **Phase 2 — Categories, Brands, Media** *(done)*
+  - Installed `kalnoy/nestedset`, `spatie/laravel-medialibrary`, `intervention/image` (v3, GD driver built in — v4 needs PHP 8.3, this project is on 8.2).
+  - `categories` (nested set columns via `$table->nestedSet()`, `name`/`slug`/`description`/`is_active`) and `brands` (`name`/`slug`/`description`/`is_active`) migrations + `media` table (medialibrary).
+  - `Category` (NodeTrait + InteractsWithMedia, media collection `image`), `Brand` (InteractsWithMedia, media collection `logo`) models — both with a `thumb` (300x300) conversion.
+  - `resources/views/layouts/admin.blade.php` (new sidebar layout) + `partials/admin-nav.blade.php`.
+  - `Admin\DashboardController`, `Admin\CategoryController`, `Admin\BrandController` (full resources minus `show`) + views under `resources/views/admin/{categories,brands}/`. Category form has a parent-category picker (indented tree) and recursive `_rows.blade.php` partial for the nested index table.
+  - `CategoryFactory`, `BrandFactory`.
+  - Tests: `tests/Feature/Admin/CategoryManagementTest.php` (root + nested child creation, slug uniqueness, view rendering, customer 403) and `BrandManagementTest.php` (same pattern). All 28 tests pass.
 - [ ] **Phase 3 — Products & Variants**
   - `products`, `product_options`, `product_option_values`, `product_variants`, pivot table.
   - Admin CRUD: product → options/values → variants (SKU/price/stock) → images.
