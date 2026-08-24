@@ -6,11 +6,20 @@
     <div class="offcanvas-body d-flex flex-column">
         <ul class="navbar-nav">
             @auth
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
-                        <i class="bi bi-speedometer2 me-1"></i>Dashboard
-                    </a>
-                </li>
+                @unless (auth()->user()->hasVerifiedEmail())
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('verification.notice') ? 'active' : '' }}" href="{{ route('verification.notice') }}">
+                            <i class="bi bi-envelope-check me-1"></i>Verify Email
+                        </a>
+                    </li>
+                @endunless
+                @if (auth()->user()->isAdmin())
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('admin.*') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
+                            <i class="bi bi-shield-lock me-1"></i>Admin
+                        </a>
+                    </li>
+                @endif
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="userMenuSm" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-person-circle me-1"></i>{{ auth()->user()->name }}

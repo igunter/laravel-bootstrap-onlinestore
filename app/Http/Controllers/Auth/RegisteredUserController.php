@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Http\Controllers\Auth\Concerns\RedirectsToIntendedUrl;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
@@ -14,8 +15,12 @@ use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
-    public function create(): View
+    use RedirectsToIntendedUrl;
+
+    public function create(Request $request): View
     {
+        $this->rememberIntendedUrl($request);
+
         return view('auth.register');
     }
 
@@ -37,6 +42,6 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect(route('dashboard'));
+        return redirect()->intended($this->intendedUrl($request));
     }
 }

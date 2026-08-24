@@ -15,10 +15,6 @@
                     <i class="bi bi-box-arrow-in-right me-1"></i>Log in
                 </a>
             </div>
-        @else
-            <a href="{{ route('dashboard') }}" class="btn btn-primary btn-lg">
-                <i class="bi bi-speedometer2 me-1"></i>Go to dashboard
-            </a>
         @endguest
     </div>
 @endsection

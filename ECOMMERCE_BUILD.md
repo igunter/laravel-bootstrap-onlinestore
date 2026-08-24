@@ -23,7 +23,7 @@ quick-reference status tracker.
 
 ## Progress
 
-- [ ] **Phase 1 — Roles & admin gate**
+- [x] **Phase 1 — Roles & admin gate** *(done)*
   - `role` column on `users` (default `customer`), `App\Enums\UserRole` enum cast on `User`.
   - `User::isAdmin()`, `EnsureUserIsAdmin` middleware aliased `admin` in `bootstrap/app.php`.
   - `Gate::define('access-admin', ...)` in `AppServiceProvider`.
@@ -46,6 +46,12 @@ quick-reference status tracker.
   - `orders`/`order_items` tables, checkout form → pending order, customer order history, admin order view.
 - [ ] **Phase 7 — SumUp integration**
   - `app/Services/SumUp/SumUpClient.php`, real checkout creation, webhook handler, stock decrement on payment confirmation.
+
+## Related uncommitted work (not part of the e-commerce build)
+
+- Removed the old `/dashboard` route/view/nav link; login/register/email-verify
+  now redirect back to the page the user was on before (session-based,
+  `App\Http\Controllers\Auth\Concerns\RedirectsToIntendedUrl`), falling back to `/`.
 
 ## Notes for restarting
 

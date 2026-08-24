@@ -1,10 +1,19 @@
 <ul class="navbar-nav ms-auto d-none d-md-flex align-items-md-center">
     @auth
-        <li class="nav-item">
-            <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
-                <i class="bi bi-speedometer2 me-1"></i>Dashboard
-            </a>
-        </li>
+        @unless (auth()->user()->hasVerifiedEmail())
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('verification.notice') ? 'active' : '' }}" href="{{ route('verification.notice') }}">
+                    <i class="bi bi-envelope-check me-1"></i>Verify Email
+                </a>
+            </li>
+        @endunless
+        @if (auth()->user()->isAdmin())
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('admin.*') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
+                    <i class="bi bi-shield-lock me-1"></i>Admin
+                </a>
+            </li>
+        @endif
         <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="userMenuMd" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="bi bi-person-circle me-1"></i>{{ auth()->user()->name }}
