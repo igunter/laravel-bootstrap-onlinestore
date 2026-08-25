@@ -1,6 +1,9 @@
 @foreach ($categories as $category)
-    <tr>
-        <td>{{ str_repeat('— ', $depth) }}{{ $category->name }}</td>
+    <tr class="category-row" draggable="true" data-id="{{ $category->id }}" data-depth="{{ $depth }}">
+        <td>
+            <i class="bi bi-grip-vertical text-muted category-drag-handle" style="cursor: grab;"></i>
+            {{ str_repeat('— ', $depth) }}{{ $category->name }}
+        </td>
         <td>{{ $category->slug }}</td>
         <td>
             @if ($category->is_active)

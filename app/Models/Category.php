@@ -25,6 +25,7 @@ class Category extends Model implements HasMedia
     {
         return [
             'is_active' => 'boolean',
+            'is_manually_ordered' => 'boolean',
         ];
     }
 

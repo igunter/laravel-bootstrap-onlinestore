@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use LogicException;
 
 class CategoryController extends Controller
 {
@@ -34,6 +37,8 @@ class CategoryController extends Controller
             'slug' => $this->uniqueSlug($data['name']),
         ]);
 
+        $this->resortAmongSiblings($category);
+
         if ($request->hasFile('image')) {
             $category->addMediaFromRequest('image')->toMediaCollection('image');
         }
@@ -59,6 +64,8 @@ class CategoryController extends Controller
 
         $category->update($data);
 
+        $this->resortAmongSiblings($category);
+
         if ($request->hasFile('image')) {
             $category->addMediaFromRequest('image')->toMediaCollection('image');
         }
@@ -71,6 +78,39 @@ class CategoryController extends Controller
         $category->delete();
 
         return redirect()->route('admin.categories.index')->with('success', 'Category deleted.');
+    }
+
+    public function move(Request $request, Category $category): JsonResponse
+    {
+        $data = $request->validate([
+            'target_id' => [
+                'required', 'integer', 'exists:categories,id',
+                function ($attribute, $value, $fail) use ($category) {
+                    if ($value == $category->id) {
+                        $fail('A category cannot be moved relative to itself.');
+                    }
+                },
+            ],
+            'position' => ['required', Rule::in(['before', 'after', 'into'])],
+        ]);
+
+        $target = Category::findOrFail($data['target_id']);
+
+        try {
+            match ($data['position']) {
+                'before' => $category->insertBeforeNode($target),
+                'after' => $category->insertAfterNode($target),
+                'into' => $category->appendToNode($target)->save(),
+            };
+        } catch (LogicException $e) {
+            abort(422, 'A category cannot be moved into its own descendant.');
+        }
+
+        $category->refresh();
+
+        Category::where('parent_id', $category->parent_id)->update(['is_manually_ordered' => true]);
+
+        return response()->json(['success' => true]);
     }
 
     private function validateData(Request $request, ?Category $category = null): array
@@ -120,6 +160,42 @@ class CategoryController extends Controller
         $flatten($tree);
 
         return $options;
+    }
+
+    private function resortAmongSiblings(Category $category): void
+    {
+        $siblingsManuallyOrdered = Category::where('parent_id', $category->parent_id)
+            ->whereKeyNot($category->id)
+            ->where('is_manually_ordered', true)
+            ->exists();
+
+        if ($siblingsManuallyOrdered) {
+            return;
+        }
+
+        $nextSibling = Category::query()
+            ->where('parent_id', $category->parent_id)
+            ->whereKeyNot($category->id)
+            ->where('name', '>', $category->name)
+            ->orderBy('name')
+            ->first();
+
+        if ($nextSibling) {
+            $category->refresh()->insertBeforeNode($nextSibling);
+
+            return;
+        }
+
+        $previousSibling = Category::query()
+            ->where('parent_id', $category->parent_id)
+            ->whereKeyNot($category->id)
+            ->where('name', '<=', $category->name)
+            ->orderByDesc('name')
+            ->first();
+
+        if ($previousSibling) {
+            $category->refresh()->insertAfterNode($previousSibling);
+        }
     }
 
     private function uniqueSlug(string $name, ?Category $ignoring = null): string
