@@ -21,10 +21,14 @@ class CategoryController extends Controller
         ]);
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
+        $parentOptions = $this->parentOptions();
+        $selectedParentId = $request->integer('parent_id');
+
         return view('admin.categories.create', [
-            'parentOptions' => $this->parentOptions(),
+            'parentOptions' => $parentOptions,
+            'selectedParentId' => array_key_exists($selectedParentId, $parentOptions) ? $selectedParentId : null,
         ]);
     }
 
@@ -32,9 +36,10 @@ class CategoryController extends Controller
     {
         $data = $this->validateData($request);
 
+        $parent = $data['parent_id'] ? Category::find($data['parent_id']) : null;
         $category = Category::create([
             ...$data,
-            'slug' => $this->uniqueSlug($data['name']),
+            'slug' => $this->uniqueSlug($data['name'], parent: $parent),
         ]);
 
         $this->resortAmongSiblings($category);
@@ -58,8 +63,10 @@ class CategoryController extends Controller
     {
         $data = $this->validateData($request, $category);
 
-        if ($data['name'] !== $category->name) {
-            $data['slug'] = $this->uniqueSlug($data['name'], $category);
+        if ($data['name'] !== $category->name || $data['parent_id'] != $category->parent_id) {
+            $parent = $data['parent_id'] ? Category::find($data['parent_id']) : null;
+
+            $data['slug'] = $this->uniqueSlug($data['name'], $category, $parent);
         }
 
         $category->update($data);
@@ -136,6 +143,7 @@ class CategoryController extends Controller
         unset($data['image']);
 
         $data['is_active'] = $request->boolean('is_active');
+        $data['parent_id'] = $data['parent_id'] ?? null;
 
         return $data;
     }
@@ -198,9 +206,9 @@ class CategoryController extends Controller
         }
     }
 
-    private function uniqueSlug(string $name, ?Category $ignoring = null): string
+    private function uniqueSlug(string $name, ?Category $ignoring = null, ?Category $parent = null): string
     {
-        $base = Str::slug($name);
+        $base = $parent ? "{$parent->slug}-".Str::slug($name) : Str::slug($name);
         $slug = $base;
         $i = 1;
 

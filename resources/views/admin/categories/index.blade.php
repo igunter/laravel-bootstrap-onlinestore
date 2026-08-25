@@ -18,7 +18,7 @@
                 <thead>
                     <tr>
                         <th>Name</th>
-                        <th>Slug</th>
+                        <th class="d-none d-md-table-cell">Slug</th>
                         <th>Status</th>
                         <th class="text-end">Actions</th>
                     </tr>

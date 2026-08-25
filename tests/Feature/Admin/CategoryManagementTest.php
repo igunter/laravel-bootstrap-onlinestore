@@ -40,7 +40,7 @@ class CategoryManagementTest extends TestCase
 
         $response->assertRedirect(route('admin.categories.index'));
 
-        $child = Category::where('slug', 'laptops')->firstOrFail();
+        $child = Category::where('slug', 'electronics-laptops')->firstOrFail();
         $this->assertEquals($parent->id, $child->parent_id);
         $this->assertTrue($child->isDescendantOf($parent->refresh()));
     }

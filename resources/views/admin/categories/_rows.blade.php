@@ -1,10 +1,12 @@
 @foreach ($categories as $category)
     <tr class="category-row" draggable="true" data-id="{{ $category->id }}" data-depth="{{ $depth }}">
         <td>
-            <i class="bi bi-grip-vertical text-muted category-drag-handle" style="cursor: grab;"></i>
-            {{ str_repeat('— ', $depth) }}{{ $category->name }}
+            <span style="padding-left: {{ $depth * 1.5 }}rem;" class="d-inline-flex align-items-center">
+                <i class="bi bi-grip-vertical text-muted category-drag-handle me-1" style="cursor: grab;"></i>
+                {{ $category->name }}
+            </span>
         </td>
-        <td>{{ $category->slug }}</td>
+        <td class="d-none d-md-table-cell">{{ $category->slug }}</td>
         <td>
             @if ($category->is_active)
                 <span class="badge text-bg-success">Active</span>
@@ -13,16 +15,13 @@
             @endif
         </td>
         <td class="text-end">
-            <a href="{{ route('admin.categories.edit', $category) }}" class="btn btn-sm btn-outline-primary">
-                <i class="bi bi-pencil"></i> Edit
-            </a>
-            <form action="{{ route('admin.categories.destroy', $category) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this category?');">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-sm btn-outline-danger">
-                    <i class="bi bi-trash"></i> Delete
-                </button>
-            </form>
+            <x-row-actions
+                :add-url="route('admin.categories.create', ['parent_id' => $category->id])"
+                add-label="Add subcategory"
+                :edit-url="route('admin.categories.edit', $category)"
+                :delete-url="route('admin.categories.destroy', $category)"
+                :delete-label="$category->name"
+            />
         </td>
     </tr>
     @if ($category->children->isNotEmpty())

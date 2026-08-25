@@ -16,7 +16,7 @@
                 <thead>
                     <tr>
                         <th>Name</th>
-                        <th>Slug</th>
+                        <th class="d-none d-md-table-cell">Slug</th>
                         <th>Status</th>
                         <th class="text-end">Actions</th>
                     </tr>
@@ -25,7 +25,7 @@
                     @forelse ($brands as $brand)
                         <tr>
                             <td>{{ $brand->name }}</td>
-                            <td>{{ $brand->slug }}</td>
+                            <td class="d-none d-md-table-cell">{{ $brand->slug }}</td>
                             <td>
                                 @if ($brand->is_active)
                                     <span class="badge text-bg-success">Active</span>
@@ -34,16 +34,11 @@
                                 @endif
                             </td>
                             <td class="text-end">
-                                <a href="{{ route('admin.brands.edit', $brand) }}" class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-pencil"></i> Edit
-                                </a>
-                                <form action="{{ route('admin.brands.destroy', $brand) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this brand?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                        <i class="bi bi-trash"></i> Delete
-                                    </button>
-                                </form>
+                                <x-row-actions
+                                    :edit-url="route('admin.brands.edit', $brand)"
+                                    :delete-url="route('admin.brands.destroy', $brand)"
+                                    :delete-label="$brand->name"
+                                />
                             </td>
                         </tr>
                     @empty

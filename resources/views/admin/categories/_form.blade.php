@@ -14,7 +14,7 @@
     <select name="parent_id" id="parent_id" class="form-select @error('parent_id') is-invalid @enderror">
         <option value="">— None (top level) —</option>
         @foreach ($parentOptions as $id => $label)
-            <option value="{{ $id }}" @selected(old('parent_id', $category->parent_id ?? '') == $id)>{{ $label }}</option>
+            <option value="{{ $id }}" @selected(old('parent_id', $category->parent_id ?? $selectedParentId ?? '') == $id)>{{ $label }}</option>
         @endforeach
     </select>
     @error('parent_id')
