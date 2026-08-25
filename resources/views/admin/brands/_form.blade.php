@@ -26,6 +26,8 @@
     @if (isset($brand) && $brand->getFirstMedia('logo'))
         <img src="{{ $brand->getFirstMediaUrl('logo', 'thumb') }}" alt="{{ $brand->name }}" class="img-thumbnail mt-2" style="max-width: 150px;">
     @endif
+
+    <x-media-picker context="brand" file-input-id="logo" modal-id="brandMediaPicker" />
 </div>
 
 <div class="form-check mb-3">

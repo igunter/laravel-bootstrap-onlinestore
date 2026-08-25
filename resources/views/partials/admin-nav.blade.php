@@ -64,6 +64,11 @@
                         <i class="bi bi-tags me-1"></i>Brands
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('admin.media.*') ? 'active' : 'text-white' }}" href="{{ route('admin.media.index') }}">
+                        <i class="bi bi-images me-1"></i>Media
+                    </a>
+                </li>
             </ul>
         </div>
 

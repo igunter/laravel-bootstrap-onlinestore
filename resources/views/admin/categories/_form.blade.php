@@ -39,6 +39,8 @@
     @if (isset($category) && $category->getFirstMedia('image'))
         <img src="{{ $category->getFirstMediaUrl('image', 'thumb') }}" alt="{{ $category->name }}" class="img-thumbnail mt-2" style="max-width: 150px;">
     @endif
+
+    <x-media-picker context="category" file-input-id="image" modal-id="categoryMediaPicker" />
 </div>
 
 <div class="form-check mb-3">

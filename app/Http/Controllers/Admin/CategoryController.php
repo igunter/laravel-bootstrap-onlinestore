@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\HandlesMediaPicker;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\JsonResponse;
@@ -14,6 +15,8 @@ use LogicException;
 
 class CategoryController extends Controller
 {
+    use HandlesMediaPicker;
+
     public function index(): View
     {
         return view('admin.categories.index', [
@@ -44,9 +47,7 @@ class CategoryController extends Controller
 
         $this->resortAmongSiblings($category);
 
-        if ($request->hasFile('image')) {
-            $category->addMediaFromRequest('image')->toMediaCollection('image');
-        }
+        $this->applyPickedOrUploadedMedia($request, $category, 'image', 'image', 'category');
 
         return redirect()->route('admin.categories.index')->with('success', 'Category created.');
     }
@@ -73,9 +74,7 @@ class CategoryController extends Controller
 
         $this->resortAmongSiblings($category);
 
-        if ($request->hasFile('image')) {
-            $category->addMediaFromRequest('image')->toMediaCollection('image');
-        }
+        $this->applyPickedOrUploadedMedia($request, $category, 'image', 'image', 'category');
 
         return redirect()->route('admin.categories.index')->with('success', 'Category updated.');
     }
@@ -138,9 +137,10 @@ class CategoryController extends Controller
             'is_active' => ['sometimes', 'boolean'],
             'parent_id' => $parentIdRules,
             'image' => ['nullable', 'image', 'max:4096'],
+            'media_asset_id' => ['nullable', 'integer', 'exists:media_assets,id'],
         ]);
 
-        unset($data['image']);
+        unset($data['image'], $data['media_asset_id']);
 
         $data['is_active'] = $request->boolean('is_active');
         $data['parent_id'] = $data['parent_id'] ?? null;

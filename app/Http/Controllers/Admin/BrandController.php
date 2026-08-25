@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\HandlesMediaPicker;
 use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use Illuminate\Http\RedirectResponse;
@@ -11,6 +12,8 @@ use Illuminate\View\View;
 
 class BrandController extends Controller
 {
+    use HandlesMediaPicker;
+
     public function index(): View
     {
         return view('admin.brands.index', [
@@ -32,9 +35,7 @@ class BrandController extends Controller
             'slug' => $this->uniqueSlug($data['name']),
         ]);
 
-        if ($request->hasFile('logo')) {
-            $brand->addMediaFromRequest('logo')->toMediaCollection('logo');
-        }
+        $this->applyPickedOrUploadedMedia($request, $brand, 'logo', 'logo', 'brand');
 
         return redirect()->route('admin.brands.index')->with('success', 'Brand created.');
     }
@@ -56,9 +57,7 @@ class BrandController extends Controller
 
         $brand->update($data);
 
-        if ($request->hasFile('logo')) {
-            $brand->addMediaFromRequest('logo')->toMediaCollection('logo');
-        }
+        $this->applyPickedOrUploadedMedia($request, $brand, 'logo', 'logo', 'brand');
 
         return redirect()->route('admin.brands.index')->with('success', 'Brand updated.');
     }
@@ -77,9 +76,10 @@ class BrandController extends Controller
             'description' => ['nullable', 'string'],
             'is_active' => ['sometimes', 'boolean'],
             'logo' => ['nullable', 'image', 'max:4096'],
+            'media_asset_id' => ['nullable', 'integer', 'exists:media_assets,id'],
         ]);
 
-        unset($data['logo']);
+        unset($data['logo'], $data['media_asset_id']);
 
         $data['is_active'] = $request->boolean('is_active');
 
