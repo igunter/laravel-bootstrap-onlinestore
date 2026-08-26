@@ -26,6 +26,8 @@
         @media (min-width: 992px) {
             #adminSidebar {
                 display: block;
+                width: 212px;
+                flex-shrink: 0;
             }
             #adminSidebar .offcanvas-body {
                 height: 100%;
