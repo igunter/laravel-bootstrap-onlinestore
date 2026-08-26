@@ -19,10 +19,23 @@ class MediaAssetController extends Controller
      */
     private const LAST_USABLE_FOR_COOKIE = 'media_last_usable_for';
 
-    public function index(): View
+    public function index(Request $request): View
     {
+        $purpose = $request->string('purpose')->value();
+
+        if (! in_array($purpose, MediaAsset::PURPOSES, true)) {
+            $purpose = null;
+        }
+
+        $assets = MediaAsset::query()
+            ->when($purpose, fn ($query) => $query->whereJsonContains('usable_for', $purpose))
+            ->latest()
+            ->paginate(24)
+            ->withQueryString();
+
         return view('admin.media.index', [
-            'assets' => MediaAsset::latest()->get(),
+            'assets' => $assets,
+            'purpose' => $purpose,
         ]);
     }
 

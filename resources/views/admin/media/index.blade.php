@@ -10,9 +10,26 @@
         </a>
     </div>
 
+    <div class="btn-group mb-3" role="group" aria-label="Filter by purpose">
+        <a href="{{ route('admin.media.index') }}" class="btn btn-sm {{ $purpose === null ? 'btn-primary' : 'btn-outline-primary' }}">
+            All
+        </a>
+        @foreach (\App\Models\MediaAsset::PURPOSES as $option)
+            <a href="{{ route('admin.media.index', ['purpose' => $option]) }}" class="btn btn-sm text-capitalize {{ $purpose === $option ? 'btn-primary' : 'btn-outline-primary' }}">
+                {{ $option }}
+            </a>
+        @endforeach
+    </div>
+
     @if ($assets->isEmpty())
         <div class="card">
-            <div class="card-body text-center text-muted py-5">No media items yet.</div>
+            <div class="card-body text-center text-muted py-5">
+                @if ($purpose)
+                    No media items tagged "{{ $purpose }}" yet.
+                @else
+                    No media items yet.
+                @endif
+            </div>
         </div>
     @else
         <div class="row g-3">
@@ -31,8 +48,8 @@
                         <div class="card-body p-2">
                             <p class="small text-truncate mb-1" title="{{ $asset->name }}">{{ $asset->name ?: '(untitled)' }}</p>
                             <div class="mb-2">
-                                @foreach ($asset->usable_for as $purpose)
-                                    <span class="badge text-bg-secondary text-capitalize">{{ $purpose }}</span>
+                                @foreach ($asset->usable_for as $itemPurpose)
+                                    <span class="badge text-bg-secondary text-capitalize">{{ $itemPurpose }}</span>
                                 @endforeach
                             </div>
                             <x-row-actions
@@ -44,6 +61,10 @@
                     </div>
                 </div>
             @endforeach
+        </div>
+
+        <div class="mt-4">
+            {{ $assets->links() }}
         </div>
     @endif
 @endsection
