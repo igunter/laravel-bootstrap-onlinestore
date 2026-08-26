@@ -39,9 +39,16 @@ quick-reference status tracker.
   - `Admin\DashboardController`, `Admin\CategoryController`, `Admin\BrandController` (full resources minus `show`) + views under `resources/views/admin/{categories,brands}/`. Category form has a parent-category picker (indented tree) and recursive `_rows.blade.php` partial for the nested index table.
   - `CategoryFactory`, `BrandFactory`.
   - Tests: `tests/Feature/Admin/CategoryManagementTest.php` (root + nested child creation, slug uniqueness, view rendering, customer 403) and `BrandManagementTest.php` (same pattern). All 28 tests pass.
-- [ ] **Phase 3 — Products & Variants**
-  - `products`, `product_options`, `product_option_values`, `product_variants`, pivot table.
-  - Admin CRUD: product → options/values → variants (SKU/price/stock) → images.
+- [x] **Phase 3 — Products & Variants** *(done)*
+  - `products` (`category_id`/`brand_id` nullable FK nullOnDelete, `name`/`slug`/`description`/`base_price`/`is_active`), `product_options` (unique `product_id`+`name`), `product_option_values` (unique `product_option_id`+`value`), `product_variants` (`sku` unique, nullable `price`, `stock_quantity`, `is_active`), pivot `product_variant_option_value` (composite PK).
+  - `Product` (InteractsWithMedia, collection `images`, `thumb`/`large` conversions, `category`/`brand`/`options`/`variants` relations), `ProductOption`, `ProductOptionValue`, `ProductVariant` (`effective_price` accessor falling back to product `base_price`, `optionsLabel()` helper) models.
+  - `Admin\ProductController` (full resource) + `Admin\ProductImageController` (per-image delete), `Admin\ProductOptionController`/`ProductOptionValueController` (add/rename/delete options and values, blocked from deleting a value/option still used by a variant), `Admin\ProductVariantController` (`generate` computes the cartesian product of every option's values and creates any missing variants — or a single default variant if the product has no options — plus `update`/`destroy` per variant).
+  - `resources/views/admin/products/{index,create,edit,_form}.blade.php` — edit page has Options and Variants sections below the core form; jQuery-free vanilla JS repeatable rows for adding option values when creating a new option; per-variant inline edit forms use the HTML5 `form=""` attribute (inputs live in table cells, forms live outside the table, since a `<form>` can't be a direct child of `<tr>`).
+  - `ProductFactory`, `ProductOptionFactory`, `ProductOptionValueFactory`, `ProductVariantFactory`.
+  - Added a "Products" sidebar link and dashboard count card.
+  - Test: `tests/Feature/Admin/ProductManagementTest.php` (create, SKU uniqueness, `effective_price` fallback, cascading delete of options/values/variants, cartesian-product generation incl. no-duplicate-on-rerun, single default variant when no options, customer 403). All 35 tests pass.
+  - Manually clicked through in-browser: created a product, added Size (S/M/L) and Color (Red/Blue) options, generated all 6 variants, edited one variant's SKU/price/stock inline and confirmed it persisted while the others correctly showed the base-price placeholder.
+  - Follow-up refinement: added an explicit `has_variants` flag + "Standalone product" / "Has variants" radio choice on the product form (vanilla-JS toggle shows/hides SKU + stock quantity fields for standalone vs. the Options/Variants cards for has-variants). A standalone product still gets a single implicit `ProductVariant` created/kept in sync behind the scenes so cart/order code always references a variant either way. Switching an existing product to standalone is blocked (with a flash error) if it already has more than one variant.
 - [ ] **Phase 4 — Customer storefront browsing**
   - `routes/shop.php`, product/category browsing pages, variant picker on product show page.
 - [ ] **Phase 5 — Cart**

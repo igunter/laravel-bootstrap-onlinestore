@@ -55,6 +55,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('admin.products.*') ? 'active' : 'text-white' }}" href="{{ route('admin.products.index') }}">
+                        <i class="bi bi-box-seam me-1"></i>Products
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : 'text-white' }}" href="{{ route('admin.categories.index') }}">
                         <i class="bi bi-diagram-3 me-1"></i>Categories
                     </a>
