@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -98,9 +99,13 @@ class ProductController extends Controller
         return redirect()->route('admin.products.edit', $product)->with('success', 'Product updated.');
     }
 
-    public function destroy(Product $product): RedirectResponse
+    public function destroy(Request $request, Product $product): RedirectResponse|JsonResponse
     {
         $product->delete();
+
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Product deleted.']);
+        }
 
         return redirect()->route('admin.products.index')->with('success', 'Product deleted.');
     }

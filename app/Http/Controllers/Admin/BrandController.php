@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Admin\Concerns\HandlesMediaPicker;
 use App\Http\Controllers\Controller;
 use App\Models\Brand;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -62,9 +63,13 @@ class BrandController extends Controller
         return redirect()->route('admin.brands.index')->with('success', 'Brand updated.');
     }
 
-    public function destroy(Brand $brand): RedirectResponse
+    public function destroy(Request $request, Brand $brand): RedirectResponse|JsonResponse
     {
         $brand->delete();
+
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Brand deleted.']);
+        }
 
         return redirect()->route('admin.brands.index')->with('success', 'Brand deleted.');
     }

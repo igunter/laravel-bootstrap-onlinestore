@@ -55,33 +55,80 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
         <script>
-            document.addEventListener('click', (event) => {
-                const trigger = event.target.closest('.js-delete-trigger');
+            (function () {
+                const showToast = (message, isSuccess) => {
+                    let container = document.getElementById('admin-toast-container');
 
-                if (!trigger) return;
+                    if (!container) {
+                        container = document.createElement('div');
+                        container.id = 'admin-toast-container';
+                        container.style.cssText = 'position: fixed; top: 1rem; right: 1rem; z-index: 1080; max-width: 22rem;';
+                        document.body.appendChild(container);
+                    }
 
-                if (!window.confirm(trigger.dataset.confirm || 'Are you sure?')) return;
+                    const alert = document.createElement('div');
+                    alert.className = `alert alert-${isSuccess ? 'success' : 'danger'} alert-dismissible fade show shadow-sm`;
+                    alert.setAttribute('role', 'alert');
+                    alert.innerHTML = `
+                        ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    `;
+                    container.appendChild(alert);
 
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = trigger.dataset.deleteUrl;
-                form.style.display = 'none';
+                    setTimeout(() => alert.remove(), 4000);
+                };
 
-                const token = document.createElement('input');
-                token.type = 'hidden';
-                token.name = '_token';
-                token.value = document.querySelector('meta[name="csrf-token"]').content;
-                form.appendChild(token);
+                document.addEventListener('click', (event) => {
+                    const trigger = event.target.closest('.js-delete-trigger');
 
-                const method = document.createElement('input');
-                method.type = 'hidden';
-                method.name = '_method';
-                method.value = 'DELETE';
-                form.appendChild(method);
+                    if (!trigger) return;
 
-                document.body.appendChild(form);
-                form.submit();
-            });
+                    if (!window.confirm(trigger.dataset.confirm || 'Are you sure?')) return;
+
+                    trigger.disabled = true;
+
+                    fetch(trigger.dataset.deleteUrl, {
+                        method: 'DELETE',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        },
+                    })
+                        .then(async (response) => {
+                            const data = await response.json().catch(() => ({}));
+
+                            if (!response.ok) {
+                                showToast(data.message || 'Something went wrong.', false);
+                                trigger.disabled = false;
+
+                                return;
+                            }
+
+                            const row = trigger.closest('tr, .js-delete-row');
+
+                            if (row?.classList.contains('category-row')) {
+                                const depth = Number(row.dataset.depth);
+                                const toRemove = [row];
+                                let sibling = row.nextElementSibling;
+
+                                while (sibling && Number(sibling.dataset.depth) > depth) {
+                                    toRemove.push(sibling);
+                                    sibling = sibling.nextElementSibling;
+                                }
+
+                                toRemove.forEach((el) => el.remove());
+                            } else {
+                                row?.remove();
+                            }
+
+                            showToast(data.message || 'Deleted.', true);
+                        })
+                        .catch(() => {
+                            showToast('Network error — item was not deleted.', false);
+                            trigger.disabled = false;
+                        });
+                });
+            })();
         </script>
 
         @stack('scripts')

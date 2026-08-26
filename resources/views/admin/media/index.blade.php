@@ -34,7 +34,7 @@
     @else
         <div class="row g-3">
             @foreach ($assets as $asset)
-                <div class="col-6 col-sm-4 col-md-3 col-xl-2">
+                <div class="col-6 col-sm-4 col-md-3 col-xl-2 js-delete-row">
                     <div class="card h-100">
                         <div class="ratio ratio-1x1 bg-light">
                             @if ($asset->getFirstMedia('file'))

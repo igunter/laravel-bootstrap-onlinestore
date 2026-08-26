@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\MediaAsset;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
@@ -87,9 +88,13 @@ class MediaAssetController extends Controller
         return redirect()->route('admin.media.index')->with('success', 'Media item updated.');
     }
 
-    public function destroy(MediaAsset $medium): RedirectResponse
+    public function destroy(Request $request, MediaAsset $medium): RedirectResponse|JsonResponse
     {
         $medium->delete();
+
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Media item deleted.']);
+        }
 
         return redirect()->route('admin.media.index')->with('success', 'Media item deleted.');
     }

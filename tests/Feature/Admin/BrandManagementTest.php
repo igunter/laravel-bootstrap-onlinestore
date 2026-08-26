@@ -49,6 +49,17 @@ class BrandManagementTest extends TestCase
         $this->actingAs($admin)->get(route('admin.brands.edit', $brand))->assertOk();
     }
 
+    public function test_brand_can_be_deleted_via_ajax(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $brand = Brand::create(['name' => 'Acme Corp', 'slug' => 'acme-corp']);
+
+        $response = $this->actingAs($admin)->deleteJson(route('admin.brands.destroy', $brand));
+
+        $response->assertOk()->assertJsonPath('message', 'Brand deleted.');
+        $this->assertDatabaseMissing('brands', ['id' => $brand->id]);
+    }
+
     public function test_customers_cannot_manage_brands(): void
     {
         $user = User::factory()->create();

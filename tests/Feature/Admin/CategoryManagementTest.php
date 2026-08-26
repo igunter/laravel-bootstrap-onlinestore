@@ -69,6 +69,17 @@ class CategoryManagementTest extends TestCase
         $this->actingAs($admin)->get(route('admin.categories.edit', $parent))->assertOk();
     }
 
+    public function test_category_can_be_deleted_via_ajax(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $category = Category::create(['name' => 'Electronics', 'slug' => 'electronics']);
+
+        $response = $this->actingAs($admin)->deleteJson(route('admin.categories.destroy', $category));
+
+        $response->assertOk()->assertJsonPath('message', 'Category deleted.');
+        $this->assertDatabaseMissing('categories', ['id' => $category->id]);
+    }
+
     public function test_customers_cannot_manage_categories(): void
     {
         $user = User::factory()->create();

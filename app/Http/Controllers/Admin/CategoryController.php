@@ -79,9 +79,13 @@ class CategoryController extends Controller
         return redirect()->route('admin.categories.index')->with('success', 'Category updated.');
     }
 
-    public function destroy(Category $category): RedirectResponse
+    public function destroy(Request $request, Category $category): RedirectResponse|JsonResponse
     {
         $category->delete();
+
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Category deleted.']);
+        }
 
         return redirect()->route('admin.categories.index')->with('success', 'Category deleted.');
     }

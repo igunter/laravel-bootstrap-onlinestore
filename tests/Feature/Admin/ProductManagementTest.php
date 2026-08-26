@@ -170,6 +170,17 @@ class ProductManagementTest extends TestCase
         ]);
     }
 
+    public function test_product_can_be_deleted_via_ajax(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $product = Product::factory()->create();
+
+        $response = $this->actingAs($admin)->deleteJson(route('admin.products.destroy', $product));
+
+        $response->assertOk()->assertJsonPath('message', 'Product deleted.');
+        $this->assertDatabaseMissing('products', ['id' => $product->id]);
+    }
+
     public function test_generate_variants_creates_cartesian_product(): void
     {
         $admin = User::factory()->admin()->create();
