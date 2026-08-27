@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
@@ -35,4 +37,17 @@ Route::prefix('cart')->name('cart.')->group(function () {
     Route::patch('/{rowId}', [CartController::class, 'update'])->name('update');
     Route::delete('/{rowId}', [CartController::class, 'destroy'])->name('destroy');
     Route::delete('/', [CartController::class, 'clear'])->name('clear');
+});
+
+// Guests can check out and view the order they just placed (see
+// OrderController::show — access for a guest order is granted via a session
+// flag set at checkout, not a login). Only the order *history* list requires
+// being logged in, since a guest has no account to list orders against.
+Route::get('checkout', [CheckoutController::class, 'show'])->name('checkout.show');
+Route::post('checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+
+Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+
+Route::middleware('auth')->group(function () {
+    Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
 });

@@ -32,6 +32,12 @@
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenuMd">
                 <li>
+                    <a class="dropdown-item {{ request()->routeIs('orders.*') ? 'active' : '' }}" href="{{ route('orders.index') }}">
+                        <i class="bi bi-receipt me-1"></i>My Orders
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="dropdown-item">

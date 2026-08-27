@@ -63,6 +63,7 @@
             <div class="text-end">
                 <p class="fs-4 mb-2">Subtotal: £<span id="cart-subtotal">{{ number_format($subtotal, 2) }}</span></p>
                 <a href="{{ route('shop.products.index') }}" class="btn btn-outline-secondary">Continue shopping</a>
+                <a href="{{ route('checkout.show') }}" class="btn btn-primary">Checkout<i class="bi bi-arrow-right ms-1"></i></a>
             </div>
         </div>
     </div>

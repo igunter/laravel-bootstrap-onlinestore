@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MediaAssetController;
+use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductImageController;
 use App\Http\Controllers\Admin\ProductOptionController;
@@ -19,6 +20,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'admin']
     Route::resource('categories', CategoryController::class)->except('show');
     Route::resource('brands', BrandController::class)->except('show');
     Route::resource('media', MediaAssetController::class)->except('show');
+    Route::resource('orders', OrderController::class)->only(['index', 'show', 'update']);
 
     Route::resource('products', ProductController::class)->except('show');
 
