@@ -2,7 +2,7 @@
     class="offcanvas-lg offcanvas-start bg-dark text-white"
     tabindex="-1"
     id="adminSidebar"
-    style="--bs-offcanvas-width: 220px;"
+    style="--bs-offcanvas-width: 212px;"
 >
     {{--
         .navbar-brand's font-size/padding come from --bs-navbar-brand-* custom
@@ -59,11 +59,6 @@
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('admin.products.*') ? 'active' : 'text-white' }}" href="{{ route('admin.products.index') }}">
                         <i class="bi bi-box-seam me-1"></i>Products
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('admin.orders.*') ? 'active' : 'text-white' }}" href="{{ route('admin.orders.index') }}">
-                        <i class="bi bi-receipt me-1"></i>Orders
                     </a>
                 </li>
                 <li class="nav-item">

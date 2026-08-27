@@ -18,6 +18,24 @@
             <div class="container-xl">
                 <a class="navbar-brand" href="{{ url('/') }}">{{ config('app.name', 'Laravel') }}</a>
 
+                {{-- Mobile-only: the full cart link/badge already lives inside the
+                     offcanvas menu (nav-links-sm), out of sight until it's opened —
+                     this gives a glanceable cart indicator right in the header,
+                     shown only when there's actually something in the cart. --}}
+                @php $mobileCartCount = app(\App\Support\Cart::class)->count(); @endphp
+                <a
+                    href="{{ route('cart.index') }}"
+                    class="d-md-none text-white ms-auto me-2 cart-indicator @if ($mobileCartCount < 1) d-none @endif"
+                    title="Cart"
+                >
+                    <span class="position-relative d-inline-block">
+                        <i class="bi bi-cart fs-5"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-bg-primary cart-count-badge">
+                            {{ $mobileCartCount }}
+                        </span>
+                    </span>
+                </a>
+
                 <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#navbarOffcanvas" aria-controls="navbarOffcanvas" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>

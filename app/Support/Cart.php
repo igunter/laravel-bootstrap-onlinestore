@@ -27,6 +27,7 @@ class Cart
      *     options_label: string,
      *     unit_price: float,
      *     quantity: int,
+     *     image_url: string|null,
      * }>
      */
     public function items(): Collection
@@ -55,6 +56,13 @@ class Cart
             'options_label' => $variant->optionsLabel(),
             'unit_price' => (float) $variant->effective_price,
             'quantity' => $newQuantity,
+            // The variant's own image if it has one (e.g. a colour-specific
+            // shot), otherwise the parent product's — snapshotted like
+            // everything else above, so later re-ordering/removal of images
+            // doesn't change what's already sitting in someone's cart.
+            'image_url' => $variant->getFirstMediaUrl('images', 'thumb')
+                ?: $variant->product->getFirstMediaUrl('images', 'thumb')
+                ?: null,
         ];
 
         $this->save($items);

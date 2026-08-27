@@ -5,6 +5,8 @@ namespace Tests\Feature\Shop;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class CartTest extends TestCase
@@ -199,6 +201,30 @@ class CartTest extends TestCase
             return $item['name'] === 'Hoodie'
                 && $item['sku'] === 'HOODIE-L'
                 && $item['unit_price'] === 25.0;
+        });
+    }
+
+    public function test_cart_row_uses_the_variants_own_image_falling_back_to_the_products(): void
+    {
+        Storage::fake('public');
+
+        $product = Product::factory()->create();
+        $product->addMedia(UploadedFile::fake()->image('product.jpg'))->preservingOriginal()->toMediaCollection('images');
+        $variantWithOwnImage = ProductVariant::factory()->for($product)->create(['stock_quantity' => 10]);
+        $variantWithOwnImage->addMedia(UploadedFile::fake()->image('variant.jpg'))->preservingOriginal()->toMediaCollection('images');
+        $variantWithoutOwnImage = ProductVariant::factory()->for($product)->create(['stock_quantity' => 10]);
+
+        $this->post(route('cart.store'), ['product_variant_id' => $variantWithOwnImage->id, 'quantity' => 1]);
+        $this->post(route('cart.store'), ['product_variant_id' => $variantWithoutOwnImage->id, 'quantity' => 1]);
+
+        $response = $this->get(route('cart.index'));
+
+        $response->assertViewHas('items', function ($items) use ($variantWithOwnImage, $variantWithoutOwnImage) {
+            $ownImageItem = $items->get((string) $variantWithOwnImage->id);
+            $fallbackItem = $items->get((string) $variantWithoutOwnImage->id);
+
+            return $ownImageItem['image_url'] === $variantWithOwnImage->fresh()->getFirstMediaUrl('images', 'thumb')
+                && $fallbackItem['image_url'] === $variantWithoutOwnImage->product->getFirstMediaUrl('images', 'thumb');
         });
     }
 }
