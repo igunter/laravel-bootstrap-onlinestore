@@ -21,6 +21,8 @@ use Spatie\MediaLibrary\MediaCollections\Models\Observers\MediaObserver;
 use Spatie\MediaLibrary\ResponsiveImages\Jobs\GenerateResponsiveImagesJob;
 use Spatie\MediaLibrary\ResponsiveImages\TinyPlaceholderGenerator\Blurred;
 use Spatie\MediaLibrary\ResponsiveImages\WidthCalculator\FileSizeOptimizedWidthCalculator;
+use App\Support\Media\FlatPathGenerator;
+use App\Support\Media\UuidFileNamer;
 use Spatie\MediaLibrary\Support\FileNamer\DefaultFileNamer;
 use Spatie\MediaLibrary\Support\FileRemover\DefaultFileRemover;
 use Spatie\MediaLibrary\Support\PathGenerator\DefaultPathGenerator;
@@ -136,12 +138,12 @@ return [
     /*
      * This is the class that is responsible for naming generated files.
      */
-    'file_namer' => DefaultFileNamer::class,
+    'file_namer' => UuidFileNamer::class,
 
     /*
      * The class that contains the strategy for determining a media file's path.
      */
-    'path_generator' => DefaultPathGenerator::class,
+    'path_generator' => FlatPathGenerator::class,
 
     /*
      * The class that contains the strategy for determining how to remove files.

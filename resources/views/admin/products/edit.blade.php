@@ -14,6 +14,16 @@
         </div>
     </div>
 
+    {{-- One standalone delete form per product image, kept outside the main product
+         form above (nesting a <form> inside another is invalid HTML) — each image's
+         delete button in _form.blade.php targets one of these via its `form` attribute. --}}
+    @foreach ($product->getMedia('images') as $media)
+        <form id="delete-product-image-{{ $media->id }}" action="{{ route('admin.products.images.destroy', [$product, $media]) }}" method="POST" class="d-none">
+            @csrf
+            @method('DELETE')
+        </form>
+    @endforeach
+
     @if ($product->has_variants)
     <style>
         .option-header {

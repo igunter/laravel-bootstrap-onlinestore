@@ -5,6 +5,11 @@
     </div>
     <div class="offcanvas-body d-flex flex-column">
         <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('shop.products.*') ? 'active' : '' }}" href="{{ route('shop.products.index') }}">
+                    <i class="bi bi-shop me-1"></i>Shop
+                </a>
+            </li>
             @auth
                 @unless (auth()->user()->hasVerifiedEmail())
                     <li class="nav-item">

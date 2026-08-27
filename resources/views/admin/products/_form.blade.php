@@ -127,13 +127,14 @@
             @foreach ($product->getMedia('images') as $media)
                 <div class="position-relative" draggable="true" data-media-id="{{ $media->id }}" style="cursor: grab;">
                     <img src="{{ $media->getUrl('thumb') }}" alt="{{ $product->name }}" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;">
-                    <form action="{{ route('admin.products.images.destroy', [$product, $media]) }}" method="POST" class="position-absolute top-0 end-0" onsubmit="return confirm('Remove this image?');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-sm btn-danger py-0 px-1" title="Remove image">
-                            <i class="bi bi-x"></i>
-                        </button>
-                    </form>
+                    {{-- Submits via the `form` attribute into a standalone <form> rendered
+                         in edit.blade.php, outside the page's main product-edit <form> —
+                         nesting a <form> inside another is invalid HTML and gets silently
+                         dropped by the browser, which broke both the delete action and
+                         this button's absolute positioning. --}}
+                    <button type="submit" form="delete-product-image-{{ $media->id }}" class="btn btn-sm btn-danger py-0 px-1 position-absolute top-0 end-0" title="Remove image" onclick="return confirm('Remove this image?');">
+                        <i class="bi bi-x"></i>
+                    </button>
                 </div>
             @endforeach
         </div>

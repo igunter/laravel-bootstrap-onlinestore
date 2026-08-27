@@ -1,4 +1,9 @@
 <ul class="navbar-nav ms-auto d-none d-md-flex align-items-md-center">
+    <li class="nav-item">
+        <a class="nav-link {{ request()->routeIs('shop.products.*') ? 'active' : '' }}" href="{{ route('shop.products.index') }}">
+            <i class="bi bi-shop me-1"></i>Shop
+        </a>
+    </li>
     @auth
         @unless (auth()->user()->hasVerifiedEmail())
             <li class="nav-item">
