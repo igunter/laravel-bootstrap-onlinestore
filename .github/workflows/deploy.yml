@@ -1,0 +1,44 @@
+name: Deploy to Lightsail (rsync)
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy over rsync + run post-deploy commands
+        uses: easingthemes/ssh-deploy@v5.1.0
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+          REMOTE_USER: ${{ secrets.LIGHTSAIL_USER }}
+          TARGET: ${{ secrets.APP_PATH }}
+          SOURCE: "./"
+          # Never upload these; .env is NOT excluded here only because it lives
+          # on the server and isn't in the repo, so rsync never sees it.
+          EXCLUDE: "/node_modules/, /.git/, /vendor/, /.github/"
+          # Post-rsync commands run ON the server:
+          SCRIPT_AFTER: |
+            set -e
+            cd ${{ secrets.APP_PATH }}
+            composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+            if [ ! -f .env ]; then
+              cp .env.example .env
+              sed -i 's/^APP_ENV=.*/APP_ENV=production/' .env
+              sed -i 's/^APP_DEBUG=.*/APP_DEBUG=false/' .env
+              php artisan key:generate --force
+            fi
+            chmod -R g+rwX storage bootstrap/cache
+            chmod g+rwx database
+            chmod g+rw database/database.sqlite
+            php artisan migrate --force
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan event:cache
+            php artisan queue:restart
+            sudo systemctl reload php8.2-fpm
