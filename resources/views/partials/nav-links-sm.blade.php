@@ -17,6 +17,13 @@
                     <span class="badge text-bg-primary rounded-pill cart-count-badge @if ($cartCount < 1) d-none @endif">{{ $cartCount }}</span>
                 </a>
             </li>
+            {{-- This is a throwaway demo/test project, so this is deliberately
+                 public (no login required) — see DemoDataController/routes/shop.php. --}}
+            <li class="nav-item">
+                <button type="button" class="nav-link text-danger" data-bs-toggle="modal" data-bs-target="#resetDemoDataModal">
+                    <i class="bi bi-arrow-repeat me-1"></i>Reset demo data
+                </button>
+            </li>
             @auth
                 @unless (auth()->user()->hasVerifiedEmail())
                     <li class="nav-item">
@@ -42,14 +49,6 @@
                                 <i class="bi bi-receipt me-1"></i>My Orders
                             </a>
                         </li>
-                        @if (auth()->user()->isAdmin())
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#resetDemoDataModal">
-                                    <i class="bi bi-arrow-repeat me-1"></i>Reset demo data
-                                </button>
-                            </li>
-                        @endif
                         <li><hr class="dropdown-divider"></li>
                         <li>
                             <form method="POST" action="{{ route('logout') }}">

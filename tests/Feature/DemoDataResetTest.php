@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Admin;
+namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -18,29 +18,29 @@ class DemoDataResetTest extends TestCase
      * wrapped in a transaction). Asserting the controller invokes the right
      * Artisan command is what's actually under test here.
      */
-    public function test_admin_triggers_a_fresh_migrate_and_seed(): void
+    public function test_a_guest_can_trigger_a_fresh_migrate_and_seed(): void
     {
         Artisan::shouldReceive('call')
             ->once()
             ->with('migrate:fresh', ['--force' => true, '--seed' => true]);
 
-        $admin = User::factory()->admin()->create();
+        $response = $this->post(route('demo-data.reset'));
 
-        $response = $this->actingAs($admin)->post(route('admin.demo-data.reset'));
-
-        $response->assertRedirect(route('admin.dashboard'));
+        $response->assertRedirect();
         $response->assertSessionHas('success');
     }
 
-    public function test_customer_cannot_reset_demo_data(): void
+    public function test_a_logged_in_customer_can_also_trigger_it(): void
     {
-        $customer = User::factory()->create();
+        Artisan::shouldReceive('call')
+            ->once()
+            ->with('migrate:fresh', ['--force' => true, '--seed' => true]);
 
-        $this->actingAs($customer)->post(route('admin.demo-data.reset'))->assertForbidden();
-    }
+        $user = User::factory()->create();
 
-    public function test_guest_is_redirected_to_login(): void
-    {
-        $this->post(route('admin.demo-data.reset'))->assertRedirect(route('login'));
+        $response = $this->actingAs($user)->post(route('demo-data.reset'));
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
     }
 }

@@ -3,6 +3,7 @@
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\DemoDataController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
@@ -53,3 +54,7 @@ Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.sho
 Route::middleware('auth')->group(function () {
     Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
 });
+
+// Deliberately public, no auth required — this is a throwaway demo/test
+// project (see DemoDataController).
+Route::post('demo-data/reset', [DemoDataController::class, 'reset'])->name('demo-data.reset');
