@@ -1,4 +1,4 @@
-<div class="offcanvas offcanvas-start text-bg-dark" tabindex="-1" id="navbarOffcanvas" aria-labelledby="navbarOffcanvasLabel">
+<div class="offcanvas offcanvas-start text-bg-dark" tabindex="-1" id="navbarOffcanvas" aria-labelledby="navbarOffcanvasLabel" style="--bs-offcanvas-width: 212px;">
     <div class="offcanvas-header">
         <h5 class="offcanvas-title" id="navbarOffcanvasLabel">{{ config('app.name', 'Laravel') }}</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#navbarOffcanvas" aria-label="Close"></button>
