@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class CheckoutTest extends TestCase
@@ -27,8 +28,20 @@ class CheckoutTest extends TestCase
         ], $overrides);
     }
 
+    /**
+     * Fakes SumUp's checkout-creation endpoint, so checkout.store can run
+     * without a real network call or credentials.
+     */
+    private function fakeSumUpCheckoutCreation(string $checkoutId = 'checkout-123'): void
+    {
+        Http::fake([
+            'https://api.sumup.com/v0.1/checkouts' => Http::response(['id' => $checkoutId, 'status' => 'PENDING']),
+        ]);
+    }
+
     public function test_guest_can_check_out_without_an_account(): void
     {
+        $this->fakeSumUpCheckoutCreation();
         $variant = ProductVariant::factory()->for(Product::factory())->create(['stock_quantity' => 10]);
 
         $this->post(route('cart.store'), ['product_variant_id' => $variant->id, 'quantity' => 1]);
@@ -39,11 +52,13 @@ class CheckoutTest extends TestCase
 
         $this->assertNotNull($order);
         $this->assertNull($order->user_id);
-        $response->assertRedirect(route('orders.show', $order));
+        $this->assertSame('checkout-123', $order->sumup_checkout_id);
+        $response->assertRedirect(route('checkout.pay', $order));
     }
 
     public function test_guest_can_view_the_order_they_just_placed(): void
     {
+        $this->fakeSumUpCheckoutCreation();
         $variant = ProductVariant::factory()->for(Product::factory())->create(['stock_quantity' => 10]);
 
         $this->post(route('cart.store'), ['product_variant_id' => $variant->id, 'quantity' => 1]);
@@ -57,6 +72,7 @@ class CheckoutTest extends TestCase
 
     public function test_order_and_items_are_created_correctly_from_the_cart(): void
     {
+        $this->fakeSumUpCheckoutCreation();
         $user = User::factory()->create();
         $product = Product::factory()->create(['name' => 'Hoodie']);
         $variant = ProductVariant::factory()->for($product)->create(['sku' => 'HOODIE-L', 'price' => 25, 'stock_quantity' => 10]);
@@ -68,13 +84,14 @@ class CheckoutTest extends TestCase
         $order = Order::first();
 
         $this->assertNotNull($order);
-        $response->assertRedirect(route('orders.show', $order));
+        $response->assertRedirect(route('checkout.pay', $order));
 
         $this->assertSame($user->id, $order->user_id);
         $this->assertSame(OrderStatus::Pending, $order->status);
         $this->assertEquals(50.0, (float) $order->subtotal);
         $this->assertEquals(50.0, (float) $order->total);
         $this->assertSame('Jane Shopper', $order->contact_name);
+        $this->assertSame('checkout-123', $order->sumup_checkout_id);
 
         $this->assertSame(1, $order->items()->count());
         $item = $order->items()->first();
@@ -83,10 +100,18 @@ class CheckoutTest extends TestCase
         $this->assertSame(2, $item->quantity);
         $this->assertEquals(25.0, (float) $item->unit_price);
         $this->assertEquals(50.0, (float) $item->line_total);
+
+        // Order::create() relies on the migration's DB-level default for
+        // currency, which Eloquent doesn't know about until a refresh — this
+        // guards against the SumUp payload silently going out with a null
+        // currency again (SumUp's API rejects that with a 400).
+        Http::assertSent(fn ($request) => $request->url() === 'https://api.sumup.com/v0.1/checkouts'
+            && $request['currency'] === 'GBP');
     }
 
     public function test_cart_is_cleared_after_placing_an_order(): void
     {
+        $this->fakeSumUpCheckoutCreation();
         $user = User::factory()->create();
         $variant = ProductVariant::factory()->for(Product::factory())->create(['stock_quantity' => 10]);
 
@@ -96,6 +121,28 @@ class CheckoutTest extends TestCase
         $response = $this->actingAs($user)->get(route('cart.index'));
 
         $response->assertViewHas('items', fn ($items) => $items->isEmpty());
+    }
+
+    public function test_order_is_not_created_when_sumup_checkout_creation_fails(): void
+    {
+        Http::fake([
+            'https://api.sumup.com/v0.1/checkouts' => Http::response(['error' => 'invalid_request'], 400),
+        ]);
+
+        $user = User::factory()->create();
+        $variant = ProductVariant::factory()->for(Product::factory())->create(['stock_quantity' => 10]);
+
+        $this->actingAs($user)->post(route('cart.store'), ['product_variant_id' => $variant->id, 'quantity' => 1]);
+
+        $response = $this->actingAs($user)->post(route('checkout.store'), $this->validCheckoutData());
+
+        $response->assertRedirect(route('checkout.show'));
+        $response->assertSessionHas('error');
+        $this->assertSame(0, Order::count());
+
+        // The cart must survive a failed payment-provider call so the
+        // shopper can just retry, rather than losing their basket.
+        $this->assertTrue($this->actingAs($user)->get(route('cart.index'))->viewData('items')->isNotEmpty());
     }
 
     public function test_checkout_show_redirects_to_cart_when_cart_is_empty(): void
@@ -132,6 +179,39 @@ class CheckoutTest extends TestCase
         $response->assertRedirect(route('cart.index'));
         $response->assertSessionHas('error');
         $this->assertSame(0, Order::count());
+    }
+
+    public function test_pay_page_renders_the_card_widget_for_the_orders_own_checkout_id(): void
+    {
+        $this->fakeSumUpCheckoutCreation('checkout-xyz');
+        $user = User::factory()->create();
+        $variant = ProductVariant::factory()->for(Product::factory())->create(['stock_quantity' => 10]);
+
+        $this->actingAs($user)->post(route('cart.store'), ['product_variant_id' => $variant->id, 'quantity' => 1]);
+        $this->actingAs($user)->post(route('checkout.store'), $this->validCheckoutData());
+
+        $order = Order::first();
+
+        $response = $this->actingAs($user)->get(route('checkout.pay', $order));
+
+        $response->assertOk();
+        $response->assertSee('checkout-xyz');
+        $response->assertSee('sumup-card', false);
+    }
+
+    public function test_pay_page_is_forbidden_for_a_different_customer(): void
+    {
+        $this->fakeSumUpCheckoutCreation();
+        $owner = User::factory()->create();
+        $other = User::factory()->create();
+        $variant = ProductVariant::factory()->for(Product::factory())->create(['stock_quantity' => 10]);
+
+        $this->actingAs($owner)->post(route('cart.store'), ['product_variant_id' => $variant->id, 'quantity' => 1]);
+        $this->actingAs($owner)->post(route('checkout.store'), $this->validCheckoutData());
+
+        $order = Order::first();
+
+        $this->actingAs($other)->get(route('checkout.pay', $order))->assertForbidden();
     }
 
     public function test_checkout_requires_shipping_fields(): void

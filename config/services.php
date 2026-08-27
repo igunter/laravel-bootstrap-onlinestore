@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    'sumup' => [
+        // A single-merchant integration like this one authenticates with a
+        // plain secret API key (used directly as a bearer token) — there's no
+        // separate OAuth2 client-credentials exchange, and no distinct sandbox
+        // host either (a test-mode "sup_sk_..." key on the same api.sumup.com
+        // handles that instead).
+        'api_key' => env('SUMUP_API_KEY'),
+        'merchant_code' => env('SUMUP_MERCHANT_CODE'),
+    ],
+
 ];

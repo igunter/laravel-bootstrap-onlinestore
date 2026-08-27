@@ -15,6 +15,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
         ]);
+
+        // SumUp's Checkout API has no separately configured webhook URL — it
+        // POSTs the status-changed notification straight to the checkout's own
+        // `return_url` (see CheckoutController::returnFromSumUp), a
+        // server-to-server request that can't carry a Laravel CSRF token.
+        $middleware->validateCsrfTokens(except: [
+            'checkout/*/return',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -45,6 +45,8 @@ Route::prefix('cart')->name('cart.')->group(function () {
 // being logged in, since a guest has no account to list orders against.
 Route::get('checkout', [CheckoutController::class, 'show'])->name('checkout.show');
 Route::post('checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+Route::get('checkout/{order}/pay', [CheckoutController::class, 'pay'])->name('checkout.pay');
+Route::match(['get', 'post'], 'checkout/{order}/return', [CheckoutController::class, 'returnFromSumUp'])->name('checkout.return');
 
 Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
 

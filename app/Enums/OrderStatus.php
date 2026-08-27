@@ -14,7 +14,7 @@ enum OrderStatus: string
     {
         return match ($this) {
             self::Pending => 'Pending',
-            self::Paid => 'Paid',
+            self::Paid => 'Paid — pending dispatch',
             self::Failed => 'Failed',
             self::Cancelled => 'Cancelled',
             self::Fulfilled => 'Fulfilled',

@@ -64,4 +64,19 @@ class Order extends Model
 
         return $orderNumber;
     }
+
+    /**
+     * Whether the current request (logged-in owner, or — for a guest order —
+     * the browser session that placed it, per the `guest_order_ids` flag
+     * CheckoutController sets at checkout) may view this order. Shared by the
+     * customer order/checkout-return pages; admins use a separate route.
+     */
+    public function isViewableInThisSession(): bool
+    {
+        if ($this->user_id !== null) {
+            return $this->user_id === auth()->id();
+        }
+
+        return in_array($this->id, session('guest_order_ids', []), true);
+    }
 }
