@@ -32,9 +32,20 @@ jobs:
               sed -i 's/^APP_DEBUG=.*/APP_DEBUG=false/' .env
               php artisan key:generate --force
             fi
-            chmod -R g+rwX storage bootstrap/cache
+            # PHP-FPM (www-data) creates files here too (uploaded media, cache),
+            # so plain chmod isn't enough once that happens — www-data then owns
+            # those paths and only root can chmod/chgrp them, which is why these
+            # need sudo. Group-owning everything by the deploy user's own group
+            # (which www-data is already a member of) plus setgid on directories
+            # means both users can keep writing here after every future deploy,
+            # not just this one.
+            sudo chgrp -R ${{ secrets.LIGHTSAIL_USER }} storage bootstrap/cache
+            sudo chmod -R g+rwX storage bootstrap/cache
+            sudo find storage bootstrap/cache -type d -exec chmod g+s {} \;
+            sudo chgrp ${{ secrets.LIGHTSAIL_USER }} database
             chmod g+rwx database
             chmod g+rw database/database.sqlite
+            php artisan storage:link
             php artisan migrate --force
             php artisan config:cache
             php artisan route:cache
