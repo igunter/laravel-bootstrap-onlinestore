@@ -44,6 +44,4 @@
             </button>
         </div>
     </div>
-
-    @include('partials.reset-demo-data-modal')
 @endsection

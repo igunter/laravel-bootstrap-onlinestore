@@ -83,6 +83,33 @@
             <hr class="text-white-50">
 
             <ul class="nav nav-pills flex-column">
+                <li class="nav-item dropdown dropup">
+                    <a class="nav-link dropdown-toggle text-white" href="#" id="adminUserMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle me-1"></i>{{ auth()->user()->name }}
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="adminUserMenu">
+                        <li>
+                            <a class="dropdown-item {{ request()->routeIs('orders.*') ? 'active' : '' }}" href="{{ route('orders.index') }}">
+                                <i class="bi bi-receipt me-1"></i>My Orders
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#resetDemoDataModal">
+                                <i class="bi bi-arrow-repeat me-1"></i>Reset demo data
+                            </button>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="dropdown-item">
+                                    <i class="bi bi-box-arrow-right me-1"></i>Log out
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link text-white" href="{{ url('/') }}">
                         <i class="bi bi-box-arrow-left me-1"></i>Back to store
