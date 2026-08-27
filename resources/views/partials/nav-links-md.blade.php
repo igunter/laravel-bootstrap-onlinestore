@@ -4,6 +4,13 @@
             <i class="bi bi-shop me-1"></i>Shop
         </a>
     </li>
+    <li class="nav-item">
+        <a class="nav-link {{ request()->routeIs('cart.*') ? 'active' : '' }}" href="{{ route('cart.index') }}">
+            <i class="bi bi-cart me-1"></i>Cart
+            @php $cartCount = app(\App\Support\Cart::class)->count(); @endphp
+            <span class="badge text-bg-primary rounded-pill cart-count-badge @if ($cartCount < 1) d-none @endif">{{ $cartCount }}</span>
+        </a>
+    </li>
     @auth
         @unless (auth()->user()->hasVerifiedEmail())
             <li class="nav-item">

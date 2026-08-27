@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
@@ -27,3 +28,11 @@ Route::get('products/{product:slug}', [ProductController::class, 'show'])->name(
 
 Route::get('categories/{category:slug}', [CategoryController::class, 'show'])->name('shop.categories.show');
 Route::get('categories/{category:slug}/page/{page}', [CategoryController::class, 'show'])->name('shop.categories.show.page');
+
+Route::prefix('cart')->name('cart.')->group(function () {
+    Route::get('/', [CartController::class, 'index'])->name('index');
+    Route::post('/', [CartController::class, 'store'])->name('store');
+    Route::patch('/{rowId}', [CartController::class, 'update'])->name('update');
+    Route::delete('/{rowId}', [CartController::class, 'destroy'])->name('destroy');
+    Route::delete('/', [CartController::class, 'clear'])->name('clear');
+});

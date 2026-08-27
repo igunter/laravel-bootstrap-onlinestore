@@ -105,6 +105,8 @@
         </div>
 
         <div class="col-md-6">
+            @php $standaloneVariant = $product->has_variants ? null : $product->standaloneVariant(); @endphp
+
             <h1 class="h3">{{ $product->name }}</h1>
 
             @if ($product->brand)
@@ -145,6 +147,8 @@
                             const priceEl = document.getElementById('variant-price');
                             const stockEl = document.getElementById('variant-stock');
                             const hiddenInput = document.getElementById('selected-variant-id');
+                            const cartVariantInput = document.getElementById('cart-variant-id');
+                            const addToCartButton = document.getElementById('add-to-cart-button');
 
                             const getSelection = () => {
                                 const selection = {};
@@ -214,6 +218,8 @@
                                     priceEl.textContent = 'Select options to see price';
                                     stockEl.textContent = '';
                                     hiddenInput.value = '';
+                                    cartVariantInput.value = '';
+                                    addToCartButton.disabled = true;
                                     window.setProductGalleryImages?.([]);
 
                                     return;
@@ -222,6 +228,8 @@
                                 priceEl.textContent = `£${variant.price.toFixed(2)}`;
                                 stockEl.textContent = variant.stock > 0 ? `${variant.stock} in stock` : 'Out of stock';
                                 hiddenInput.value = variant.id;
+                                cartVariantInput.value = variant.id;
+                                addToCartButton.disabled = variant.stock < 1;
                                 window.setProductGalleryImages?.(variant.images || []);
                             };
 
@@ -237,20 +245,38 @@
                     </script>
                 @endpush
             @else
-                @php $variant = $product->standaloneVariant(); @endphp
                 <p class="fs-4">£{{ number_format($product->base_price, 2) }}</p>
-                @if ($variant)
+                @if ($standaloneVariant)
                     <p class="text-muted">
-                        @if (! $variant->is_active)
+                        @if (! $standaloneVariant->is_active)
                             Unavailable
-                        @elseif ($variant->stock_quantity > 0)
-                            {{ $variant->stock_quantity }} in stock
+                        @elseif ($standaloneVariant->stock_quantity > 0)
+                            {{ $standaloneVariant->stock_quantity }} in stock
                         @else
                             Out of stock
                         @endif
                     </p>
                 @endif
             @endif
+
+            <form action="{{ route('cart.store') }}" method="POST" class="d-flex align-items-end gap-2 mt-3">
+                @csrf
+                <input type="hidden" name="product_variant_id" id="cart-variant-id" value="{{ $standaloneVariant?->id }}">
+
+                <div>
+                    <label class="form-label" for="cart-quantity">Quantity</label>
+                    <input type="number" name="quantity" id="cart-quantity" value="1" min="1" class="form-control" style="width: 5rem;">
+                </div>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                    id="add-to-cart-button"
+                    @if ($product->has_variants || ! $standaloneVariant || ! $standaloneVariant->is_active || $standaloneVariant->stock_quantity < 1) disabled @endif
+                >
+                    <i class="bi bi-cart-plus me-1"></i>Add to cart
+                </button>
+            </form>
         </div>
     </div>
 @endsection

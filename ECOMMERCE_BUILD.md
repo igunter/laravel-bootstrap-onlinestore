@@ -56,8 +56,14 @@ quick-reference status tracker.
   - Added a "Shop" nav link (visible to guests and logged-in users alike) to both `nav-links-md`/`nav-links-sm` partials.
   - Test: `tests/Feature/Shop/ProductBrowsingTest.php` (index lists only active products, category filter, category page includes nested descendants' products, inactive product/category → 404, standalone product shows correct price/stock, variant product's embedded JSON map has the right price/stock per combination). All 67 tests pass.
   - Manually verified in-browser: shop index with category/brand filters, category show page, standalone product page (price + stock), and the has-variants product page — selecting "S" showed £42.00/5 in stock, switching to "M" correctly updated to £44.00/Out of stock.
-- [ ] **Phase 5 — Cart**
-  - `app/Support/Cart.php` (session-backed), cart routes/views.
+- [x] **Phase 5 — Cart** *(done)*
+  - `app/Support/Cart.php` — session-backed, keyed by variant id (adding an already-present variant increments quantity rather than duplicating rows). `add()`/`update()`/`remove()`/`clear()`/`items()`/`subtotal()`/`count()`. Each row snapshots product name/slug, variant SKU/options-label/unit-price **at add time** (later price edits don't retroactively change what's in a cart), and quantity is capped at the variant's *current* `stock_quantity` on both add and update.
+  - `app/Http/Controllers/CartController.php` (`index`/`store`/`update`/`destroy`/`clear`) + `routes/shop.php` (`cart.*`, prefix `cart`) — `store` rejects inactive variants/products and out-of-stock items with a flash error rather than a validation error, since it's not really "invalid input" from the shopper's POV.
+  - `resources/views/shop/cart/index.blade.php` — line-item table with per-row quantity update/remove forms, subtotal, clear-cart button.
+  - Product show page: "Add to cart" form wired in for both standalone and has-variants products — for has-variants, the existing option-select JS now also keeps a hidden `product_variant_id` input in sync and enables/disables the button based on the selected variant's live stock.
+  - Cart nav link (both `nav-links-md`/`nav-links-sm` partials) with a quantity badge, visible to guests and logged-in users alike (cart doesn't require login).
+  - Test: `tests/Feature/Shop/CartTest.php` (add twice increments quantity not duplicate rows, quantity capped at stock on add and on update, subtotal math, remove/clear, out-of-stock/inactive-variant/inactive-product rejected, row snapshots survive a later price change). All 102 tests pass.
+  - Manually verified in-browser (via curl + a saved session cookie, since no browser automation available): added an item, confirmed the flash message and cart page's line item/subtotal/nav badge, removed the item, confirmed the empty-cart state; confirmed the has-variants product page's "Add to cart" button starts disabled until a valid option combination is selected.
 - [ ] **Phase 6 — Checkout & Orders (no payment yet)**
   - `orders`/`order_items` tables, checkout form → pending order, customer order history, admin order view.
 - [ ] **Phase 7 — SumUp integration**
