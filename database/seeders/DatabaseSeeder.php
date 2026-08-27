@@ -13,10 +13,10 @@ class DatabaseSeeder extends Seeder
     {
         User::create([
             'role'              => 'admin',
-            'name'              => 'Ian Gunter',
-            'email'             => 'ianwgunter@gmail.com',
+            'name'              => 'Admin Account',
+            'email'             => 'admin@autoparel.co.uk',
             'email_verified_at' => now(),
-            'password'          => bcrypt('P4$$w0rd!!!'),
+            'password'          => bcrypt('P4$$w0rd'),
         ]);
 
         User::factory(10)->create();

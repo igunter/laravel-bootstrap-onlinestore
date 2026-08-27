@@ -36,6 +36,14 @@
                         <i class="bi bi-receipt me-1"></i>My Orders
                     </a>
                 </li>
+                @if (auth()->user()->isAdmin())
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#resetDemoDataModal">
+                            <i class="bi bi-arrow-repeat me-1"></i>Reset demo data
+                        </button>
+                    </li>
+                @endif
                 <li><hr class="dropdown-divider"></li>
                 <li>
                     <form method="POST" action="{{ route('logout') }}">
